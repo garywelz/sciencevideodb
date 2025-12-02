@@ -9,8 +9,9 @@ Our YouTube client currently uses **API Key authentication**, which is perfect f
 - ✅ Searching public videos
 
 **What we need:**
-- `GOOGLE_API_KEY` from `apilist.md` line 36: `AIzaSyD4Zg7--Dx_zFOLkPnol-cQ--ORSFI4NZs`
+- A YouTube Data API v3 key (starts with `AIza...`)
 - Store this in Secrets Manager as `youtube-api-key`
+- **Never commit API keys to git** - use Secrets Manager only
 
 ## OAuth 2.0 Credentials (For Private/User Data)
 
@@ -44,24 +45,29 @@ The OAuth credentials in `apilist.md` (lines 15-18) would be needed for:
 Store the API key we need:
 
 ```bash
-# Update with the Google API Key (which works for YouTube Data API)
-echo -n "AIzaSyD4Zg7--Dx_zFOLkPnol-cQ--ORSFI4NZs" | \
+# Update with your Google API Key (replace YOUR_API_KEY with actual key)
+echo -n "YOUR_API_KEY" | \
   gcloud secrets versions add youtube-api-key \
   --project=regal-scholar-453620-r7 \
   --data-file=-
 ```
 
-Optionally store OAuth credentials for future use:
+**Important**: 
+- Replace `YOUR_API_KEY` with your actual API key
+- Never commit real API keys to git
+- All keys should be stored in Google Secrets Manager
+
+Optionally store OAuth credentials for future use (if needed):
 
 ```bash
-# YouTube OAuth Client ID
-echo -n "53253319594-aeplkfls4gsglrhrabtg4i9nl0161061.apps.googleusercontent.com" | \
+# YouTube OAuth Client ID (replace with your actual client ID)
+echo -n "YOUR_CLIENT_ID" | \
   gcloud secrets versions add youtube-client-id \
   --project=regal-scholar-453620-r7 \
   --data-file=-
 
-# YouTube OAuth Client Secret
-echo -n "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" | \
+# YouTube OAuth Client Secret (replace with your actual secret)
+echo -n "YOUR_CLIENT_SECRET" | \
   gcloud secrets versions add youtube-client-secret \
   --project=regal-scholar-453620-r7 \
   --data-file=-

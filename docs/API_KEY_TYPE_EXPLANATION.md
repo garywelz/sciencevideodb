@@ -10,8 +10,8 @@ This means the credential you created is not a standard YouTube Data API v3 API 
 
 **Correct API keys** for YouTube Data API v3:
 - Start with `AIza...` 
-- Example: `AIzaSyD4Zg7--Dx_zFOLkPnol-cQ--ORSFI4NZs`
-- Format: `AIzaSy` followed by 39 characters
+- Example: `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (39 characters total)
+- Format: `AIzaSy` followed by 33 more characters
 
 **What you created:**
 - Starts with `AQ.`
@@ -44,7 +44,7 @@ echo -n "AIzaSy..." | gcloud secrets versions add youtube-api-key \
 
 ## Alternative: Use Existing Key
 
-If you want to use the key from `apilist.md` (line 36):
-- `GOOGLE_API_KEY=AIzaSyD4Zg7--Dx_zFOLkPnol-cQ--ORSFI4NZs`
-- This format is correct for YouTube Data API v3
+**Note**: Never commit real API keys to git. Always use Google Secrets Manager.
+- Store keys in Secrets Manager, not in code or documentation
+- Use placeholder examples in documentation (like `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`)
 
