@@ -1,13 +1,33 @@
 #!/bin/bash
 
 # Script to update youtube-api-key in Google Secrets Manager
-# Uses the GOOGLE_API_KEY from apilist.md
+# 
+# Usage:
+#   ./scripts/update-youtube-api-key.sh YOUR_API_KEY
+# 
+# Or set as environment variable:
+#   export YOUTUBE_API_KEY="your-key-here"
+#   ./scripts/update-youtube-api-key.sh
 
 PROJECT_ID="regal-scholar-453620-r7"
 SECRET_NAME="youtube-api-key"
 
-# The API key from apilist.md line 36
-API_KEY="AIzaSyD4Zg7--Dx_zFOLkPnol-cQ--ORSFI4NZs"
+# Get API key from command line argument or environment variable
+if [ -n "$1" ]; then
+  API_KEY="$1"
+elif [ -n "$YOUTUBE_API_KEY" ]; then
+  API_KEY="$YOUTUBE_API_KEY"
+else
+  echo "❌ Error: API key required"
+  echo ""
+  echo "Usage:"
+  echo "  $0 YOUR_API_KEY"
+  echo ""
+  echo "Or set environment variable:"
+  echo "  export YOUTUBE_API_KEY=\"your-key-here\""
+  echo "  $0"
+  exit 1
+fi
 
 echo "Updating YouTube API key in Secrets Manager..."
 echo "Project: $PROJECT_ID"
