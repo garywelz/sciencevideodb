@@ -1,0 +1,28 @@
+{
+  "name": "@scienceviddb/ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "ingest": "tsx src/index.ts",
+    "ingest:channel": "tsx src/index.ts --channel",
+    "ingest:all": "tsx src/index.ts --all",
+    "test:youtube": "tsx src/youtube/test.ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "watch": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@scienceviddb/shared": "*",
+    "@scienceviddb/gcp-utils": "*",
+    "dotenv": "^16.4.1",
+    "youtube-transcript": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
+

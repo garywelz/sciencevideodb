@@ -1,0 +1,26 @@
+{
+  "name": "@scienceviddb/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "watch": "tsc --watch",
+    "migrate": "tsx src/migrate.ts",
+    "test": "tsx src/test.ts"
+  },
+  "dependencies": {
+    "@scienceviddb/shared": "*",
+    "@scienceviddb/gcp-utils": "*",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.10.9",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
+

@@ -1,0 +1,30 @@
+{
+  "name": "scienceviddb",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Science Video Database - Curated search experience for biology, chemistry, CS, mathematics, and physics videos",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces",
+    "build:packages": "npm run build --workspace=packages/shared && npm run build --workspace=packages/gcp-utils && npm run build --workspace=packages/db",
+    "db:migrate": "npm run migrate --workspace=packages/db",
+    "db:test": "npm run test --workspace=packages/db",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces",
+    "ingest": "npm run ingest --workspace=packages/ingestion",
+    "test:youtube": "npm run build:packages && npm run test:youtube --workspace=packages/ingestion",
+    "prebuild": "npm run build:packages"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
