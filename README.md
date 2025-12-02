@@ -1,3 +1,27 @@
+---
+title: Science Video Database
+emoji: 🔬
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 4.0.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
+---
+title: Science Video Database
+emoji: 🔬
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 4.0.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # Science Video Database (scienceviddb)
 
 A curated search experience for technical science enthusiasts, featuring biology, chemistry, CS, mathematics, and physics videos from YouTube and other sources.
@@ -93,4 +117,3 @@ npm run ingest
 ## License
 
 MIT
-

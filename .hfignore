@@ -1,0 +1,14 @@
+# Ignore files for HuggingFace Space
+node_modules/
+.next/
+dist/
+build/
+*.log
+.env
+.env*.local
+apilist.md
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+
