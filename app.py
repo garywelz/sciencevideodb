@@ -45,7 +45,7 @@ def get_video_info(video_id: str):
     """
 
 # Create Gradio interface
-with gr.Blocks(title="Science Video Database", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Science Video Database") as demo:
     gr.Markdown("""
     # 🔬 Science Video Database
     
