@@ -234,3 +234,30 @@ export async function getVideosByDiscipline(
   })
 }
 
+/**
+ * Get recent videos by discipline (within last N days)
+ */
+export async function getRecentVideosByDiscipline(
+  discipline: Discipline,
+  days: number = 30,
+  limit: number = 50
+): Promise<VideoRecord[]> {
+  const result = await query<VideoRow>(
+    `SELECT v.*, c.channel_name, c.channel_url
+     FROM videos v
+     JOIN channels c ON v.channel_id = c.id
+     WHERE $1 = ANY(v.disciplines)
+       AND v.published_at >= NOW() - INTERVAL '${days} days'
+     ORDER BY v.published_at DESC
+     LIMIT $2`,
+    [discipline, limit]
+  )
+  
+  return result.rows.map((row) => {
+    const video = rowToVideoRecord(row as VideoRow)
+    video.channelName = (row as VideoRow & { channel_name: string }).channel_name
+    video.channelUrl = (row as VideoRow & { channel_url: string | null }).channel_url
+    return video
+  })
+}
+

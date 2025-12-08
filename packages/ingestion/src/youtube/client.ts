@@ -425,13 +425,48 @@ export class YouTubeClient {
   }
 
   /**
+   * Get available caption tracks for a video
+   */
+  async getCaptionTracks(videoId: string): Promise<Array<{
+    id: string
+    language: string
+    name: string
+    trackKind: string
+  }>> {
+    try {
+      const response = await this.makeRequest<YouTubeApiResponse<{
+        id: string
+        snippet: {
+          language: string
+          name: string
+          trackKind: string
+        }
+      }>>('captions', {
+        part: 'snippet',
+        videoId,
+      })
+
+      return (response.items || []).map((item) => ({
+        id: item.id,
+        language: item.snippet.language,
+        name: item.snippet.name,
+        trackKind: item.snippet.trackKind,
+      }))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new Error(`Failed to get caption tracks: ${message}`)
+    }
+  }
+
+  /**
    * Fetch transcript with timestamps
-   * Returns transcript segments with start/end times
+   * First tries youtube-transcript library (no quota), then falls back to API method
    */
   async fetchTranscriptWithTimestamps(
     videoId: string,
     languageCode: string = 'en'
   ): Promise<Array<{ text: string; start: number; duration: number }>> {
+    // Try youtube-transcript library first (no API quota needed)
     try {
       const { YoutubeTranscript } = await import('youtube-transcript')
       
@@ -439,15 +474,79 @@ export class YouTubeClient {
         lang: languageCode,
       })
 
-      return transcriptItems.map((item) => ({
-        text: item.text,
-        start: item.offset / 1000, // Convert milliseconds to seconds
-        duration: item.duration / 1000, // Convert milliseconds to seconds
-      }))
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new Error(`Failed to fetch transcript with timestamps: ${message}`)
+      if (transcriptItems.length > 0) {
+        return transcriptItems.map((item) => ({
+          text: item.text,
+          start: item.offset / 1000, // Convert milliseconds to seconds
+          duration: item.duration / 1000, // Convert milliseconds to seconds
+        }))
+      }
+      
+      // If empty, try API method
+      throw new Error('Library returned empty array')
+    } catch (libraryError) {
+      // Fall back to YouTube API method (uses quota but more reliable)
+      try {
+        const captionTracks = await this.getCaptionTracks(videoId)
+        
+        if (captionTracks.length === 0) {
+          throw new Error('No caption tracks available')
+        }
+
+        // Find the best matching caption track
+        let captionTrack = captionTracks.find((track) => track.language === languageCode)
+        if (!captionTrack) {
+          // Fall back to English or first available
+          captionTrack = captionTracks.find((track) => track.language.startsWith('en')) || captionTracks[0]
+        }
+
+        // Try to fetch transcript from YouTube's public endpoint
+        // Note: This works for public videos without OAuth
+        const transcriptUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${captionTrack.language}&fmt=srv3`
+        
+        const response = await fetch(transcriptUrl)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch transcript: ${response.statusText}`)
+        }
+
+        const xmlText = await response.text()
+        
+        // Parse XML transcript (YouTube's timedtext format)
+        return this.parseTimedTextXML(xmlText)
+      } catch (apiError) {
+        const libMsg = libraryError instanceof Error ? libraryError.message : String(libraryError)
+        const apiMsg = apiError instanceof Error ? apiError.message : String(apiError)
+        throw new Error(`Failed to fetch transcript (Library: ${libMsg}, API: ${apiMsg})`)
+      }
     }
+  }
+
+  /**
+   * Parse YouTube's timedtext XML format
+   */
+  private parseTimedTextXML(xmlText: string): Array<{ text: string; start: number; duration: number }> {
+    const segments: Array<{ text: string; start: number; duration: number }> = []
+    
+    // Simple XML parsing for timedtext format
+    // Format: <text start="0.0" dur="2.5">Hello world</text>
+    const textRegex = /<text\s+start="([\d.]+)"\s+dur="([\d.]+)"[^>]*>([^<]+)<\/text>/g
+    let match
+    
+    while ((match = textRegex.exec(xmlText)) !== null) {
+      const start = parseFloat(match[1])
+      const duration = parseFloat(match[2])
+      const text = match[3].trim()
+      
+      if (text) {
+        segments.push({
+          text,
+          start,
+          duration,
+        })
+      }
+    }
+    
+    return segments
   }
 
   /**

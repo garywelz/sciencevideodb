@@ -1,12 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Enable edge runtime for API routes where appropriate
-  experimental: {
-    serverActions: true,
-  },
-  // Transpile shared package
-  transpilePackages: ['@scienceviddb/shared'],
+  // Transpile shared packages for mono-repo
+  transpilePackages: [
+    '@scienceviddb/shared',
+    '@scienceviddb/db',
+    '@scienceviddb/gcp-utils',
+  ],
+  // Output configuration
+  output: 'standalone',
 }
 
 module.exports = nextConfig

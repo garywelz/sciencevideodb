@@ -1,46 +1,104 @@
-export default function Home() {
+import Link from 'next/link'
+import { getRecentVideosByDiscipline } from '@scienceviddb/db'
+import type { Discipline } from '@scienceviddb/shared'
+import DisciplineCard from './components/DisciplineCard'
+
+const disciplines: Array<{ id: Discipline; name: string; emoji: string; color: string }> = [
+  { id: 'biology', name: 'Biology', emoji: '🧬', color: '#10b981' },
+  { id: 'chemistry', name: 'Chemistry', emoji: '⚗️', color: '#3b82f6' },
+  { id: 'cs', name: 'Computer Science', emoji: '💻', color: '#8b5cf6' },
+  { id: 'mathematics', name: 'Mathematics', emoji: '📐', color: '#f59e0b' },
+  { id: 'physics', name: 'Physics', emoji: '⚛️', color: '#ef4444' },
+]
+
+export const revalidate = 3600 // Revalidate every hour
+
+export default async function Home() {
+  // Get video counts for each discipline
+  const disciplineCounts = await Promise.all(
+    disciplines.map(async (d) => {
+      const videos = await getRecentVideosByDiscipline(d.id, 30, 1)
+      return { ...d, count: videos.length }
+    })
+  )
+
   return (
     <main>
-      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h1>Science Video Database</h1>
-        <p>Curated search experience for technical science enthusiasts</p>
+      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+        <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <a 
+              href="https://copernicusai.fyi"
+              style={{
+                fontSize: '0.9rem',
+                color: '#666',
+                textDecoration: 'none',
+              }}
+            >
+              ← Part of CopernicusAI
+            </a>
+          </div>
+          <h1 style={{ 
+            fontSize: '3rem', 
+            fontWeight: 'bold',
+            marginBottom: '0.5rem',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            Science Video Database
+          </h1>
+          <p style={{ 
+            fontSize: '1.25rem', 
+            color: '#666',
+            marginTop: '0.5rem'
+          }}>
+            Curated search experience for technical science enthusiasts
+          </p>
+        </header>
         
-        <section style={{ marginTop: '2rem' }}>
-          <h2>Browse by Discipline</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-            {['biology', 'chemistry', 'cs', 'mathematics', 'physics'].map((discipline) => (
-              <a
-                key={discipline}
-                href={`/discipline/${discipline}`}
-                style={{
-                  padding: '1rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {discipline}
-              </a>
+        <section style={{ marginTop: '3rem' }}>
+          <h2 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: '600',
+            marginBottom: '1.5rem',
+            color: '#1a1a1a'
+          }}>
+            Browse by Discipline
+          </h2>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+            gap: '1.5rem',
+            marginTop: '1rem' 
+          }}>
+            {disciplineCounts.map((discipline) => (
+              <DisciplineCard
+                key={discipline.id}
+                id={discipline.id}
+                name={discipline.name}
+                emoji={discipline.emoji}
+                color={discipline.color}
+                count={discipline.count}
+              />
             ))}
           </div>
         </section>
 
-        <section style={{ marginTop: '2rem' }}>
-          <h2>Search</h2>
-          <form style={{ marginTop: '1rem' }}>
-            <input
-              type="search"
-              placeholder="Search videos, transcripts..."
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-              }}
-            />
-          </form>
+        <section style={{ marginTop: '3rem', padding: '2rem', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+          <h2 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: '600',
+            marginBottom: '1rem',
+            color: '#1a1a1a'
+          }}>
+            About
+          </h2>
+          <p style={{ color: '#666', lineHeight: '1.6' }}>
+            Science Video Database is a curated collection of high-quality science videos from YouTube. 
+            We index videos from trusted channels across biology, chemistry, computer science, mathematics, and physics. 
+            Each video includes metadata, transcripts, and searchable content to help you find exactly what you&apos;re looking for.
+          </p>
         </section>
       </div>
     </main>

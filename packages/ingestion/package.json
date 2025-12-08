@@ -9,6 +9,12 @@
     "ingest:channel": "tsx src/index.ts --channel",
     "ingest:all": "tsx src/index.ts --all",
     "test:youtube": "tsx src/youtube/test.ts",
+    "add-test-channel": "tsx src/scripts/add-test-channel.ts",
+    "add-channels": "tsx src/scripts/add-channels.ts",
+    "verify-ingestion": "tsx src/scripts/verify-ingestion.ts",
+    "test-transcript": "tsx src/scripts/test-transcript-storage.ts",
+    "test-transcript-batch": "tsx src/scripts/test-transcript-batch.ts",
+    "test-search": "tsx src/scripts/test-search.ts",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "watch": "tsx watch src/index.ts"
@@ -16,6 +22,7 @@
   "dependencies": {
     "@scienceviddb/shared": "*",
     "@scienceviddb/gcp-utils": "*",
+    "@scienceviddb/db": "*",
     "dotenv": "^16.4.1",
     "youtube-transcript": "^1.2.1"
   },
