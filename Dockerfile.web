@@ -1,0 +1,80 @@
+# Dockerfile for Science Video Database Next.js Web App
+FROM node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/gcp-utils/package.json ./packages/gcp-utils/
+COPY packages/db/package.json ./packages/db/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+RUN npm ci
+
+# Build packages
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+
+# Copy package files
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/gcp-utils/package.json ./packages/gcp-utils/
+COPY packages/db/package.json ./packages/db/
+COPY apps/web/package.json ./apps/web/
+
+# Copy source code
+COPY packages/shared ./packages/shared
+COPY packages/gcp-utils ./packages/gcp-utils
+COPY packages/db ./packages/db
+COPY apps/web ./apps/web
+
+# Build packages
+RUN npm run build --workspace=packages/shared
+RUN npm run build --workspace=packages/gcp-utils
+RUN npm run build --workspace=packages/db
+
+# Build Next.js app
+WORKDIR /app/apps/web
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+
+# Copy node_modules for runtime
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/
+COPY --from=builder /app/packages/gcp-utils/dist ./packages/gcp-utils/dist
+COPY --from=builder /app/packages/gcp-utils/package.json ./packages/gcp-utils/
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/db/package.json ./packages/db/
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "apps/web/server.js"]
+
