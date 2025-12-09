@@ -12,15 +12,20 @@ const disciplines: Array<{ id: Discipline; name: string; emoji: string; color: s
 ]
 
 export const dynamic = 'force-dynamic' // Force dynamic rendering - no static generation
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 0 // No revalidation - always fetch fresh
 
 export default async function Home() {
   // Get video counts for each discipline
-  // Skip database calls during build - will fetch at runtime
+  // Always start with 0 counts - will be fetched at runtime
   let disciplineCounts = disciplines.map(d => ({ ...d, count: 0 }))
   
-  // Only fetch if not in build environment
-  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  // Only fetch if DATABASE_URL is available (not during build)
+  // During build, DATABASE_URL might not be accessible even if set
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                      process.env.VERCEL_ENV === undefined ||
+                      !process.env.DATABASE_URL
+  
+  if (!isBuildTime) {
     try {
       disciplineCounts = await Promise.all(
         disciplines.map(async (d) => {
