@@ -11,30 +11,33 @@ const disciplines: Array<{ id: Discipline; name: string; emoji: string; color: s
   { id: 'physics', name: 'Physics', emoji: '⚛️', color: '#ef4444' },
 ]
 
+export const dynamic = 'force-dynamic' // Force dynamic rendering - no static generation
 export const revalidate = 3600 // Revalidate every hour
-export const dynamic = 'force-dynamic' // Force dynamic rendering to avoid build-time DB calls
 
 export default async function Home() {
   // Get video counts for each discipline
-  // Wrap in try-catch to handle build-time errors gracefully
+  // Skip database calls during build - will fetch at runtime
   let disciplineCounts = disciplines.map(d => ({ ...d, count: 0 }))
   
-  try {
-    disciplineCounts = await Promise.all(
-      disciplines.map(async (d) => {
-        try {
-          const videos = await getRecentVideosByDiscipline(d.id, 30, 1)
-          return { ...d, count: videos.length }
-        } catch (error) {
-          // If database query fails, return 0 count
-          console.error(`Failed to fetch videos for ${d.id}:`, error)
-          return { ...d, count: 0 }
-        }
-      })
-    )
-  } catch (error) {
-    // If all queries fail, use default counts
-    console.error('Failed to fetch video counts:', error)
+  // Only fetch if not in build environment
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    try {
+      disciplineCounts = await Promise.all(
+        disciplines.map(async (d) => {
+          try {
+            const videos = await getRecentVideosByDiscipline(d.id, 30, 1)
+            return { ...d, count: videos.length }
+          } catch (error) {
+            // If database query fails, return 0 count
+            console.error(`Failed to fetch videos for ${d.id}:`, error)
+            return { ...d, count: 0 }
+          }
+        })
+      )
+    } catch (error) {
+      // If all queries fail, use default counts
+      console.error('Failed to fetch video counts:', error)
+    }
   }
 
   return (
