@@ -87,20 +87,30 @@ export async function getYouTubeApiKey(): Promise<string> {
  * Get database URL from Secrets Manager or environment variable
  * 
  * Checks USE_SECRETS_MANAGER environment variable:
- * - If false or not set: uses DATABASE_URL environment variable
- * - If true: fetches from Google Secrets Manager
+ * - If false, 'false', not set, or empty: uses DATABASE_URL environment variable
+ * - If explicitly 'true': fetches from Google Secrets Manager
  */
 export async function getDatabaseUrl(): Promise<string> {
+  // Check DATABASE_URL first - if it exists and USE_SECRETS_MANAGER is not explicitly 'true', use it
+  const databaseUrl = process.env.DATABASE_URL
   const useSecretsManager = process.env.USE_SECRETS_MANAGER === 'true'
   
-  if (!useSecretsManager) {
-    const databaseUrl = process.env.DATABASE_URL
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL environment variable not set. Set it or enable USE_SECRETS_MANAGER=true')
-    }
+  // Prefer DATABASE_URL if available and not explicitly using Secrets Manager
+  if (databaseUrl && !useSecretsManager) {
     return databaseUrl
   }
   
-  return getSecret(SecretNames.DATABASE_URL)
+  // If DATABASE_URL is not set and not using Secrets Manager, throw error
+  if (!databaseUrl && !useSecretsManager) {
+    throw new Error('DATABASE_URL environment variable not set. Set DATABASE_URL or enable USE_SECRETS_MANAGER=true')
+  }
+  
+  // Only fetch from Secrets Manager if explicitly enabled
+  if (useSecretsManager) {
+    return getSecret(SecretNames.DATABASE_URL)
+  }
+  
+  // Fallback (shouldn't reach here, but TypeScript needs it)
+  throw new Error('DATABASE_URL environment variable not set')
 }
 
